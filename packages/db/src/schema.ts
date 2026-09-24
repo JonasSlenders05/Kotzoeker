@@ -32,8 +32,8 @@ export const language = pgEnum("language", ["nl", "en", "fr"]);
 export const listingType = pgEnum("listing_type", [
   "room",
   "studio",
-  "apartement",
-  "sharedhouse",
+  "apartment",
+  "shared_house",
 ]);
 export const listingStatus = pgEnum("listing_status", [
   "draft",
@@ -71,8 +71,8 @@ export const profiles = pgTable(
     id: uuid().primaryKey(),
     role: userRole().notNull().default("student"),
     email: text().notNull().unique(),
-    firstname: text().notNull(),
-    lastname: text().notNull().unique(),
+    firstName: text().notNull(),
+    lastName: text().notNull(),
     avatarPath: text(), //pad in Storage-bucket "avatars"
     phone: text(),
     preferredLanguage: language().notNull().default("nl"),
@@ -101,7 +101,7 @@ export const campuses = pgTable(
     name: text().notNull(),
     street: text(),
     postalCode: text(),
-    city: text(),
+    city: text().notNull(),
     lat: doublePrecision().notNull(),
     lng: doublePrecision().notNull(),
     createdAt,
@@ -118,6 +118,8 @@ export const studentProfiles = pgTable("student_profiles", {
     onDelete: "set null",
   }),
   campusId: uuid().references(() => campuses.id, { onDelete: "set null" }),
+  studyProgram: text(),
+  studyYear: smallint(),
   bio: text(),
   onboardingCompletedAt: timestamp({ withTimezone: true }),
   ...timestamps,
@@ -128,8 +130,9 @@ export const landlordProfiles = pgTable("landlord_profiles", {
     .primaryKey()
     .references(() => profiles.id, { onDelete: "cascade" }),
   companyName: text(),
-  vatNumber: text(),
-  verifiedAt: timestamp({ withTimezone: true }),
+  vatNumber: text(), // "BE0123456789"
+  bio: text(),
+  verifiedAt: timestamp({ withTimezone: true }), // null = niet geverifieerd
   ...timestamps,
 });
 
@@ -145,10 +148,10 @@ export const listings = pgTable(
     title: text().notNull(),
     description: text(),
     rentCents: integer().notNull(), // prijzen in centen per maand
-    costCents: integer().notNull().default(0),
+    costsCents: integer().notNull().default(0),
     costsIncluded: boolean().notNull().default(false),
     depositCents: integer(),
-    sizeM2: smallint(),
+    sizeM2: smallint("size_m2"), // expliciete naam: casing zou size_m_2 maken
     street: text().notNull(),
     houseNumber: text().notNull(),
     box: text(),
@@ -159,8 +162,8 @@ export const listings = pgTable(
     availableFrom: date(),
     leaseType: leaseType().notNull().default("academic_year"),
     minLeaseMonths: smallint(),
-    hasComformityCertificate: boolean().notNull().default(false),
-    epcLabel: text(),
+    hasConformityCertificate: boolean().notNull().default(false), // conformiteitsattest
+    epcLabel: text(), // "A+" .. "F"
     aiGeneratedAt: timestamp({ withTimezone: true }),
     publishedAt: timestamp({ withTimezone: true }),
     ...timestamps,
@@ -169,8 +172,8 @@ export const listings = pgTable(
     index().on(t.landlordId),
     index().on(t.status, t.city),
     index().on(t.availableFrom),
-    check("listing_rent_positive", sql`${t.rentCents} > 0`),
-    check("listing_cost_non_negative", sql`${t.rentCents} >= 0`),
+    check("listings_rent_positive", sql`${t.rentCents} > 0`),
+    check("listings_costs_non_negative", sql`${t.costsCents} >= 0`),
   ],
 );
 
@@ -197,7 +200,7 @@ export const amenities = pgTable("amenities", {
   labelNl: text().notNull(),
   labelEn: text().notNull(),
   category: amenityCategory().notNull(),
-  sharable: boolean().notNull().default(false), // false = kan gedeeld worden (meubels), true = kan niet gedeeld worden
+  shareable: boolean().notNull().default(true), // false = kan niet gedeeld zijn (bemeubeld, wifi)
 });
 
 export const listingAmenities = pgTable(
@@ -221,7 +224,7 @@ export const studentPreferences = pgTable("student_preferences", {
     .references(() => profiles.id, { onDelete: "cascade" }),
   campusId: uuid().references(() => campuses.id, { onDelete: "set null" }),
   maxRentCents: integer(),
-  minSizeM2: smallint(),
+  minSizeM2: smallint("min_size_m2"), // expliciete naam: casing zou min_size_m_2 maken
   moveInDate: date(),
   leaseType: leaseType(),
   listingTypes: listingType().array(), //null = alles ok
@@ -243,6 +246,20 @@ export const preferenceAmenities = pgTable(
     mustBePrivate: boolean().notNull().default(false),
   },
   (t) => [primaryKey({ columns: [t.studentId, t.amenityKey] })],
+);
+
+export const favorites = pgTable(
+  "favorites",
+  {
+    studentId: uuid()
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    listingId: uuid()
+      .notNull()
+      .references(() => listings.id, { onDelete: "cascade" }),
+    createdAt,
+  },
+  (t) => [primaryKey({ columns: [t.studentId, t.listingId] })],
 );
 
 // CHAT
