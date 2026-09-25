@@ -27,7 +27,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm typecheck
-      - run: pnpm test --if-present
+      - run: pnpm test
       - run: pnpm build
       - run: pnpm --filter @kotzoeker/db db:generate
       - run: git diff --exit-code supabase/migrations
