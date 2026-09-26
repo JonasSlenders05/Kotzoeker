@@ -15,6 +15,20 @@
       "when": 1790276986962,
       "tag": "20260924190946_auth_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790432091798,
+      "tag": "20260926141451_profiles_role_nullable",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790432117139,
+      "tag": "20260926141517_onboarding_trigger",
+      "breakpoints": true
     }
   ]
 }
