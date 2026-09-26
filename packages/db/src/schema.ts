@@ -1,19 +1,19 @@
 import { sql } from "drizzle-orm";
 import {
-    pgTable,
-    pgEnum,
-    uuid,
-    text,
-    integer,
-    smallint,
-    boolean,
-    doublePrecision,
-    timestamp,
-    date,
-    primaryKey,
-    index,
-    uniqueIndex,
-    check,
+  pgTable,
+  pgEnum,
+  uuid,
+  text,
+  integer,
+  smallint,
+  boolean,
+  doublePrecision,
+  timestamp,
+  date,
+  primaryKey,
+  index,
+  uniqueIndex,
+  check,
 } from "drizzle-orm/pg-core";
 
 // HELPERS
@@ -64,12 +64,14 @@ export const bookingStatus = pgEnum("booking_status", [
   "cancelled",
 ]);
 
+export type UserRole = (typeof userRole.enumValues)[number];
+
 //USERS
 export const profiles = pgTable(
   "profiles",
   {
     id: uuid().primaryKey(),
-    role: userRole().notNull().default("student"),
+    role: userRole(),
     email: text().notNull().unique(),
     firstName: text().notNull(),
     lastName: text().notNull(),
