@@ -4,6 +4,20 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@theme {
+  --color-plum: #ec91d8;
+  --color-plum-light: #ffaaea;
+  --color-blush: #ffbeef;
+  --color-petal: #ffd3da;
+  --color-soft-blush: #e9d3d0;
+  --color-ink: #2b1227;
+  --color-ink-muted: #6b4a63;
+  --color-plum-deep: #8e2f7c;
+  --color-surface: #fff8fa;
+  --color-surface-raised: #ffffff;
+  --color-line: #ecd9e3;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -49,30 +63,30 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --background: var(--color-surface);
+  --foreground: var(--color-ink);
+  --card: var(--color-surface-raised);
+  --card-foreground: var(--color-ink);
+  --popover: var(--color-surface-raised);
+  --popover-foreground: var(--color-ink);
+  --primary: var(--color-plum);
+  --primary-foreground: var(--color-ink);
+  --secondary: var(--color-petal);
+  --secondary-foreground: var(--color-ink);
+  --muted: var(--color-petal);
+  --muted-foreground: var(--color-ink-muted);
+  --accent: var(--color-petal);
+  --accent-foreground: var(--color-ink);
+  --border: var(--color-line);
+  --input: var(--color-line);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: var(--color-ink);
+  --radius: 0.5rem;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -115,6 +129,22 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+@utility container-page {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 1344px;
+  padding-inline: 2rem;
+}
+
+@utility eyebrow {
+  margin-bottom: 1rem;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-plum-deep);
 }
 
 @layer base {
