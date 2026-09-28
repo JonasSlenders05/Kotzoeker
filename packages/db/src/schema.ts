@@ -168,6 +168,7 @@ export const listings = pgTable(
     epcLabel: text(), // "A+" .. "F"
     aiGeneratedAt: timestamp({ withTimezone: true }),
     publishedAt: timestamp({ withTimezone: true }),
+    slug: text().unique(),
     ...timestamps,
   },
   (t) => [
