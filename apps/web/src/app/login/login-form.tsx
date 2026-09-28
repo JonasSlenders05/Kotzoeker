@@ -1,94 +1,73 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { LoginSchema, type LoginInput } from "@kotzoeker/shared";
+import { loginWithPassword } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function LoginForm({ next }: { next: string | null }) {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "sent" | "error">("idle");
   const [pending, startTransition] = useTransition();
+  const [serverError, setServerError] = useState<string | null>(null);
 
-  function callbackUrl() {
-    const url = new URL("/aut/callback", window.location.origin);
-    if (next) url.searchParams.set("next", next);
-    return url.toString();
-  }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginInput>({
+    resolver: zodResolver(LoginSchema),
+    defaultValues: { email: "", password: "" },
+  });
 
-  function signInWithGoogle() {
+  const onSubmit = handleSubmit((values) => {
+    setServerError(null);
     startTransition(async () => {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: callbackUrl() },
-      });
-
-      if (error) setStatus("error");
+      // Bij succes stuurt de action je door; je krijgt enkel iets terug bij een fout.
+      const result = await loginWithPassword(values, next);
+      if (result) setServerError(result.message);
     });
-  }
-
-  function sendMagicLink(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    startTransition(async () => {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: new URL(
-            "/auth/callback",
-            window.location.origin,
-          ).toString(),
-        },
-      });
-      setStatus(error ? "error" : "sent");
-    });
-  }
-
-  if (status === "sent") {
-    return (
-      <p>
-        Check je mailbox: we stuurden een link naar <strong>{email}</strong>
-      </p>
-    );
-  }
+  });
 
   return (
-    <div className="space-y-6">
-      <Button
-        type="button"
-        className="w-full"
-        onClick={signInWithGoogle}
-        disabled={pending}
-      >
-        Verder met Google
-      </Button>
-
-      <form onSubmit={sendMagicLink} className="space-y-3">
-        <Label htmlFor="email">Of log in met een link per e-mail</Label>
+    <form onSubmit={onSubmit} className="space-y-4" noValidate>
+      <div className="space-y-2">
+        <Label htmlFor="email">E-mailadres</Label>
         <Input
           id="email"
           type="email"
           autoComplete="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          {...register("email")}
         />
-        <Button
-          type="submit"
-          variant="outline"
-          className="w-full"
-          disabled={pending}
-        >
-          {pending ? "Bezig…" : "Stuur me een link"}
-        </Button>
-      </form>
-      {status === "error" && (
+        {errors.email && (
+          <p className="text-sm text-destructive">{errors.email.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="password">Wachtwoord</Label>
+        <Input
+          id="password"
+          type="password"
+          autoComplete="current-password"
+          {...register("password")}
+        />
+        {errors.password && (
+          <p className="text-sm text-destructive">{errors.password.message}</p>
+        )}
+      </div>
+
+      {serverError && (
         <p role="alert" className="text-sm text-destructive">
-          Er ging iets mis. Probeer het over een minuutje opnieuw.
+          {serverError}
         </p>
       )}
-    </div>
+
+      <Button type="submit" className="w-full" disabled={pending}>
+        {pending ? "Bezig…" : "Inloggen"}
+      </Button>
+    </form>
   );
 }

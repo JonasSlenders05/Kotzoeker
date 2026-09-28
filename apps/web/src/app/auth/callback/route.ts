@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getPostLoginPath, safeNextPath } from "@/lib/auth";
 
+// Enkel de types die bij inloggen horen. Andere (recovery, email_change) weiger je hier.
 const LOGIN_OTP_TYPES: EmailOtpType[] = ["email", "magiclink", "signup"];
 
 export async function GET(request: NextRequest) {
@@ -27,9 +28,10 @@ export async function GET(request: NextRequest) {
   }
 
   if (!userId) {
-    return NextResponse.redirect(new URL("login?error=auth", origin));
+    return NextResponse.redirect(new URL("/login?error=auth", origin));
   }
 
+  // Altijd een pad op je eigen origin, nooit een volledige URL uit de query string.
   const path = await getPostLoginPath(userId, next);
   return NextResponse.redirect(new URL(path, origin));
 }
