@@ -36,6 +36,20 @@
       "when": 1790608333677,
       "tag": "20260928151213_listings_slug",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790669619635,
+      "tag": "20260929081339_listings_insert_landlord_only",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790669622046,
+      "tag": "20260929081342_listing_photos_storage",
+      "breakpoints": true
     }
   ]
 }

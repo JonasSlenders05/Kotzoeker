@@ -25,7 +25,7 @@ insert into public.campuses (id, institution_id, name, postal_code, city, lat, l
   ('11000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000002', 'Campus Boekentoren',   '9000', 'Gent', 51.0453, 3.7261);
 
 -- ---------- fictieve kotbazen ----------
--- De trigger on_auth_user_created maakt hiervoor profiles + landlord_profiles aan.
+-- De trigger on_auth_user_created maakt hiervoor een profiel aan, met de naam uit full_name maar zonder rol.
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
   raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
@@ -33,54 +33,65 @@ insert into auth.users (
 ) values
   ('00000000-0000-0000-0000-000000000000', '20000000-0000-0000-0000-000000000001', 'authenticated', 'authenticated',
    'els.vermeulen@example.com', '', now(),
-   '{"provider":"email","providers":["email"]}', '{"role":"landlord","first_name":"Els","last_name":"Vermeulen"}', now(), now(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Els Vermeulen"}', now(), now(),
    '', '', '', ''),
   ('00000000-0000-0000-0000-000000000000', '20000000-0000-0000-0000-000000000002', 'authenticated', 'authenticated',
    'marc.desmet@example.com', '', now(),
-   '{"provider":"email","providers":["email"]}', '{"role":"landlord","first_name":"Marc","last_name":"De Smet"}', now(), now(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Marc De Smet"}', now(), now(),
    '', '', '', ''),
   ('00000000-0000-0000-0000-000000000000', '20000000-0000-0000-0000-000000000003', 'authenticated', 'authenticated',
    'sofie.peeters@example.com', '', now(),
-   '{"provider":"email","providers":["email"]}', '{"role":"landlord","first_name":"Sofie","last_name":"Peeters"}', now(), now(),
+   '{"provider":"email","providers":["email"]}', '{"full_name":"Sofie Peeters"}', now(), now(),
    '', '', '', '');
+
+-- De rol zet je zoals saveOnboarding het doet: op het profiel, plus een rij in landlord_profiles.
+update public.profiles set role = 'landlord'
+where id in ('20000000-0000-0000-0000-000000000001',
+             '20000000-0000-0000-0000-000000000002',
+             '20000000-0000-0000-0000-000000000003');
+
+insert into public.landlord_profiles (profile_id) values
+  ('20000000-0000-0000-0000-000000000001'),
+  ('20000000-0000-0000-0000-000000000002'),
+  ('20000000-0000-0000-0000-000000000003');
 
 -- ---------- listings ----------
 insert into public.listings (
   id, landlord_id, type, status, title, description,
   rent_cents, costs_cents, costs_included, deposit_cents, size_m2,
   street, house_number, postal_code, city, lat, lng,
-  available_from, lease_type, min_lease_months, has_conformity_certificate, epc_label, published_at
+  available_from, lease_type, min_lease_months, has_conformity_certificate, epc_label, published_at, slug
 ) values
   ('30000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'room', 'published',
    'Lichte kamer vlakbij de Overpoort', 'Ruime kamer op de eerste verdieping, gedeelde keuken en living.',
    45000, 6000, false, 90000, 16,
    'Overpoortstraat', '12', '9000', 'Gent', 51.0389, 3.7269,
-   '2027-09-01', 'academic_year', 10, true, 'C', now()),
+   '2027-09-01', 'academic_year', 10, true, 'C', now(), 'lichte-kamer-vlakbij-de-overpoort-seed01'),
   ('30000000-0000-0000-0000-000000000002', '20000000-0000-0000-0000-000000000001', 'studio', 'published',
    'Instapklare studio met eigen badkamer', 'Volledig ingerichte studio, alles inbegrepen.',
    62000, 0, true, 124000, 24,
    'Sint-Pietersnieuwstraat', '45', '9000', 'Gent', 51.0459, 3.7266,
-   '2027-09-01', 'academic_year', 10, true, 'B', now()),
+   '2027-09-01', 'academic_year', 10, true, 'B', now(), 'instapklare-studio-met-eigen-badkamer-seed02'),
   ('30000000-0000-0000-0000-000000000003', '20000000-0000-0000-0000-000000000002', 'shared_house', 'published',
    'Kamer in gedeeld huis (5 studenten)', 'Gezellig studentenhuis met tuin en fietsenstalling.',
    38000, 8000, false, 76000, 14,
    'Voskenslaan', '8', '9000', 'Gent', 51.0355, 3.7118,
-   '2027-09-01', 'academic_year', 10, true, 'D', now()),
+   '2027-09-01', 'academic_year', 10, true, 'D', now(), 'kamer-in-gedeeld-huis-5-studenten-seed03'),
   ('30000000-0000-0000-0000-000000000004', '20000000-0000-0000-0000-000000000002', 'apartment', 'published',
    'Appartement voor twee, dicht bij Campus Mercator', 'Twee slaapkamers, balkon, vlot bereikbaar met de fiets.',
    85000, 9500, false, 170000, 55,
    'Henleykaai', '30', '9000', 'Gent', 51.0571, 3.7359,
-   '2026-10-15', 'flexible', 6, true, 'B', now()),
+   '2026-10-15', 'flexible', 6, true, 'B', now(), 'appartement-voor-twee-campus-mercator-seed04'),
   ('30000000-0000-0000-0000-000000000005', '20000000-0000-0000-0000-000000000003', 'room', 'published',
    'Betaalbare kamer, jaarcontract', 'Kamer met lavabo, gedeelde badkamer en toilet.',
    35000, 7000, false, 70000, 12,
    'Kortrijksesteenweg', '100', '9000', 'Gent', 51.0290, 3.7042,
-   '2027-09-01', 'full_year', 12, false, 'E', now()),
+   '2027-09-01', 'full_year', 12, false, 'E', now(), 'betaalbare-kamer-jaarcontract-seed05'),
   ('30000000-0000-0000-0000-000000000006', '20000000-0000-0000-0000-000000000003', 'studio', 'draft',
    'Studio in opbouw (concept)', null,
    58000, 0, true, null, null,
    'Koningin Fabiolalaan', '22', '9000', 'Gent', 51.0301, 3.7095,
-   null, 'academic_year', null, false, null, null);
+   null, 'academic_year', null, false, null, null, null);
 
 -- ---------- voorzieningen per kot ----------
 insert into public.listing_amenities (listing_id, amenity_key, is_shared, shared_with) values
