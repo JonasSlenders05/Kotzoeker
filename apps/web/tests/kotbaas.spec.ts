@@ -36,7 +36,7 @@ test("een kotbaas maakt een kot aan, voegt een foto toe en publiceert", async ({
   // 4. Foto uploaden (verborgen <input type="file"> van de dropzone)
   await page
     .locator('input[type="file"]')
-    .setInputFiles("tests/fixtures/kot.jpg");
+    .setInputFiles("public/images/gent-leie.jpg"); // foto van Gent die al in de repo staat
   await expect(page.getByRole("img", { name: "Foto 1" })).toBeVisible({
     timeout: 30_000,
   });
