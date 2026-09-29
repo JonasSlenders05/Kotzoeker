@@ -16,7 +16,14 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kotzoeker — vind je kot in Gent",
+  // Nodig voor absolute URL's in de deelpreview (Open Graph) en canonical.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  ),
+  title: {
+    default: "Kotzoeker — vind je kot in Gent",
+    template: "%s | Kotzoeker",
+  },
   description:
     "Beschrijf in je eigen woorden wat je zoekt en vind een kot in de buurt van je campus.",
 };

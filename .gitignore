@@ -5,3 +5,11 @@ node_modules/
 !.env.example
 supabase/.temp
 .claude/
+
+# Playwright
+apps/web/tests/.auth/
+apps/web/test-results/
+apps/web/playwright-report/
+
+
+*.jpg
