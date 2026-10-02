@@ -8,7 +8,11 @@
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "db:start": "supabase start",
+    "db:reset": "supabase db reset && supabase seed buckets && pnpm db:migrate && pnpm:seed",
+    "db:migrate": "pnpm --filter @kotzoeker/db db:migrate",
+    "db:seed": "pnpm --filter @kotzoeker/api db:seed"
   },
   "devDependencies": {
     "prettier": "^3.9.9",

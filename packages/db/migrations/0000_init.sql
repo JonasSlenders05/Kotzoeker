@@ -53,7 +53,7 @@ CREATE TABLE "institutions" (
 );
 --> statement-breakpoint
 CREATE TABLE "landlord_profiles" (
-	"profile_id" uuid PRIMARY KEY NOT NULL,
+	"user_id" uuid PRIMARY KEY NOT NULL,
 	"company_name" text,
 	"vat_number" text,
 	"bio" text,
@@ -108,8 +108,10 @@ CREATE TABLE "listings" (
 	"epc_label" text,
 	"ai_generated_at" timestamp with time zone,
 	"published_at" timestamp with time zone,
+	"slug" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "listings_slug_unique" UNIQUE("slug"),
 	CONSTRAINT "listings_rent_positive" CHECK ("listings"."rent_cents" > 0),
 	CONSTRAINT "listings_costs_non_negative" CHECK ("listings"."costs_cents" >= 0)
 );
@@ -131,20 +133,6 @@ CREATE TABLE "preference_amenities" (
 	CONSTRAINT "preference_amenities_student_id_amenity_key_pk" PRIMARY KEY("student_id","amenity_key")
 );
 --> statement-breakpoint
-CREATE TABLE "profiles" (
-	"id" uuid PRIMARY KEY NOT NULL,
-	"role" "user_role" DEFAULT 'student' NOT NULL,
-	"email" text NOT NULL,
-	"first_name" text NOT NULL,
-	"last_name" text NOT NULL,
-	"avatar_path" text,
-	"phone" text,
-	"preferred_language" "language" DEFAULT 'nl' NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "profiles_email_unique" UNIQUE("email")
-);
---> statement-breakpoint
 CREATE TABLE "student_preferences" (
 	"student_id" uuid PRIMARY KEY NOT NULL,
 	"campus_id" uuid,
@@ -161,7 +149,7 @@ CREATE TABLE "student_preferences" (
 );
 --> statement-breakpoint
 CREATE TABLE "student_profiles" (
-	"profile_id" uuid PRIMARY KEY NOT NULL,
+	"user_id" uuid PRIMARY KEY NOT NULL,
 	"birth_date" date,
 	"institution_id" uuid,
 	"campus_id" uuid,
@@ -171,6 +159,21 @@ CREATE TABLE "student_profiles" (
 	"onboarding_completed_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "users" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"role" "user_role" NOT NULL,
+	"email" text NOT NULL,
+	"password_hash" text NOT NULL,
+	"first_name" text NOT NULL,
+	"last_name" text NOT NULL,
+	"avatar_path" text,
+	"phone" text,
+	"preferred_language" "language" DEFAULT 'nl' NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
 CREATE TABLE "visit_bookings" (
@@ -197,26 +200,26 @@ CREATE TABLE "visit_slots" (
 --> statement-breakpoint
 ALTER TABLE "campuses" ADD CONSTRAINT "campuses_institution_id_institutions_id_fk" FOREIGN KEY ("institution_id") REFERENCES "public"."institutions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "conversations" ADD CONSTRAINT "conversations_listing_id_listings_id_fk" FOREIGN KEY ("listing_id") REFERENCES "public"."listings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "conversations" ADD CONSTRAINT "conversations_student_id_profiles_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "conversations" ADD CONSTRAINT "conversations_landlord_id_profiles_id_fk" FOREIGN KEY ("landlord_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "favorites" ADD CONSTRAINT "favorites_student_id_profiles_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "conversations" ADD CONSTRAINT "conversations_student_id_users_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "conversations" ADD CONSTRAINT "conversations_landlord_id_users_id_fk" FOREIGN KEY ("landlord_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "favorites" ADD CONSTRAINT "favorites_student_id_users_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "favorites" ADD CONSTRAINT "favorites_listing_id_listings_id_fk" FOREIGN KEY ("listing_id") REFERENCES "public"."listings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "landlord_profiles" ADD CONSTRAINT "landlord_profiles_profile_id_profiles_id_fk" FOREIGN KEY ("profile_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "landlord_profiles" ADD CONSTRAINT "landlord_profiles_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "listing_amenities" ADD CONSTRAINT "listing_amenities_listing_id_listings_id_fk" FOREIGN KEY ("listing_id") REFERENCES "public"."listings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "listing_amenities" ADD CONSTRAINT "listing_amenities_amenity_key_amenities_key_fk" FOREIGN KEY ("amenity_key") REFERENCES "public"."amenities"("key") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "listing_photos" ADD CONSTRAINT "listing_photos_listing_id_listings_id_fk" FOREIGN KEY ("listing_id") REFERENCES "public"."listings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "listings" ADD CONSTRAINT "listings_landlord_id_profiles_id_fk" FOREIGN KEY ("landlord_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "listings" ADD CONSTRAINT "listings_landlord_id_users_id_fk" FOREIGN KEY ("landlord_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "messages" ADD CONSTRAINT "messages_conversation_id_conversations_id_fk" FOREIGN KEY ("conversation_id") REFERENCES "public"."conversations"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "messages" ADD CONSTRAINT "messages_sender_id_profiles_id_fk" FOREIGN KEY ("sender_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "messages" ADD CONSTRAINT "messages_sender_id_users_id_fk" FOREIGN KEY ("sender_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "preference_amenities" ADD CONSTRAINT "preference_amenities_student_id_student_preferences_student_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."student_preferences"("student_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "preference_amenities" ADD CONSTRAINT "preference_amenities_amenity_key_amenities_key_fk" FOREIGN KEY ("amenity_key") REFERENCES "public"."amenities"("key") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "student_preferences" ADD CONSTRAINT "student_preferences_student_id_profiles_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "student_preferences" ADD CONSTRAINT "student_preferences_student_id_users_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "student_preferences" ADD CONSTRAINT "student_preferences_campus_id_campuses_id_fk" FOREIGN KEY ("campus_id") REFERENCES "public"."campuses"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "student_profiles" ADD CONSTRAINT "student_profiles_profile_id_profiles_id_fk" FOREIGN KEY ("profile_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "student_profiles" ADD CONSTRAINT "student_profiles_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "student_profiles" ADD CONSTRAINT "student_profiles_institution_id_institutions_id_fk" FOREIGN KEY ("institution_id") REFERENCES "public"."institutions"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "student_profiles" ADD CONSTRAINT "student_profiles_campus_id_campuses_id_fk" FOREIGN KEY ("campus_id") REFERENCES "public"."campuses"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "visit_bookings" ADD CONSTRAINT "visit_bookings_slot_id_visit_slots_id_fk" FOREIGN KEY ("slot_id") REFERENCES "public"."visit_slots"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "visit_bookings" ADD CONSTRAINT "visit_bookings_student_id_profiles_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."profiles"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "visit_bookings" ADD CONSTRAINT "visit_bookings_student_id_users_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "visit_slots" ADD CONSTRAINT "visit_slots_listing_id_listings_id_fk" FOREIGN KEY ("listing_id") REFERENCES "public"."listings"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "campuses_institution_id_index" ON "campuses" USING btree ("institution_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "conversations_listing_id_student_id_index" ON "conversations" USING btree ("listing_id","student_id");--> statement-breakpoint
@@ -227,7 +230,7 @@ CREATE INDEX "listings_landlord_id_index" ON "listings" USING btree ("landlord_i
 CREATE INDEX "listings_status_city_index" ON "listings" USING btree ("status","city");--> statement-breakpoint
 CREATE INDEX "listings_available_from_index" ON "listings" USING btree ("available_from");--> statement-breakpoint
 CREATE INDEX "messages_conversation_id_created_at_index" ON "messages" USING btree ("conversation_id","created_at");--> statement-breakpoint
-CREATE INDEX "profiles_role_index" ON "profiles" USING btree ("role");--> statement-breakpoint
+CREATE INDEX "users_role_index" ON "users" USING btree ("role");--> statement-breakpoint
 CREATE UNIQUE INDEX "visit_bookings_slot_id_student_id_index" ON "visit_bookings" USING btree ("slot_id","student_id");--> statement-breakpoint
 CREATE INDEX "visit_bookings_student_id_index" ON "visit_bookings" USING btree ("student_id");--> statement-breakpoint
 CREATE INDEX "visit_slots_listing_id_starts_at_index" ON "visit_slots" USING btree ("listing_id","starts_at");

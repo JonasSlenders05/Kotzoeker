@@ -7,5 +7,9 @@ catalog:
   zod: ^4.6.5
 
 ignoredBuiltDependencies:
+  - "@parcel/watcher"
+  - cpu-features
+  - protobufjs
   - sharp
+  - ssh2
   - unrs-resolver

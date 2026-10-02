@@ -7,3 +7,5 @@ export type CurrentUserDto = {
   firstName: string;
   lastName: string;
 };
+
+export type TokenDto = { token: string };
