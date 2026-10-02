@@ -14,7 +14,8 @@ export type AmenityOptionDto = {
 
 export type ListingPhotoDto = {
   id: string;
-  storagePath: string;
+  url: string;
+  thumbUrl: string;
   position: number;
   isCover: boolean;
   width: number | null;
@@ -74,3 +75,14 @@ export type PublicListingDto = {
     sharedWith: number | null;
   }[];
 };
+
+export type PublicListingSummaryDto = {
+  slug: string;
+  title: string;
+  city: string;
+  rentCents: number;
+  coverThumbUrm: string | null;
+  updatedAt: string;
+};
+
+export type CreatedListingDto = { id: string };

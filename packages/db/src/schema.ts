@@ -67,12 +67,13 @@ export const bookingStatus = pgEnum("booking_status", [
 export type UserRole = (typeof userRole.enumValues)[number];
 
 //USERS
-export const profiles = pgTable(
-  "profiles",
+export const users = pgTable(
+  "users",
   {
-    id: uuid().primaryKey(),
-    role: userRole(),
+    id: uuid().primaryKey().defaultRandom(),
+    role: userRole().notNull(),
     email: text().notNull().unique(),
+    passwordHash: text().notNull(),
     firstName: text().notNull(),
     lastName: text().notNull(),
     avatarPath: text(), //pad in Storage-bucket "avatars"
@@ -112,9 +113,9 @@ export const campuses = pgTable(
 );
 
 export const studentProfiles = pgTable("student_profiles", {
-  profileId: uuid()
+  userId: uuid()
     .primaryKey()
-    .references(() => profiles.id, { onDelete: "cascade" }),
+    .references(() => users.id, { onDelete: "cascade" }),
   birthDate: date(),
   institutionId: uuid().references(() => institutions.id, {
     onDelete: "set null",
@@ -128,9 +129,9 @@ export const studentProfiles = pgTable("student_profiles", {
 });
 
 export const landlordProfiles = pgTable("landlord_profiles", {
-  profileId: uuid()
+  userId: uuid()
     .primaryKey()
-    .references(() => profiles.id, { onDelete: "cascade" }),
+    .references(() => users.id, { onDelete: "cascade" }),
   companyName: text(),
   vatNumber: text(), // "BE0123456789"
   bio: text(),
@@ -144,7 +145,7 @@ export const listings = pgTable(
     id: uuid().primaryKey().defaultRandom(),
     landlordId: uuid()
       .notNull()
-      .references(() => profiles.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     type: listingType().notNull().default("room"),
     status: listingStatus().notNull().default("draft"),
     title: text().notNull(),
@@ -224,7 +225,7 @@ export const listingAmenities = pgTable(
 export const studentPreferences = pgTable("student_preferences", {
   studentId: uuid()
     .primaryKey()
-    .references(() => profiles.id, { onDelete: "cascade" }),
+    .references(() => users.id, { onDelete: "cascade" }),
   campusId: uuid().references(() => campuses.id, { onDelete: "set null" }),
   maxRentCents: integer(),
   minSizeM2: smallint("min_size_m2"), // expliciete naam: casing zou min_size_m_2 maken
@@ -256,7 +257,7 @@ export const favorites = pgTable(
   {
     studentId: uuid()
       .notNull()
-      .references(() => profiles.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     listingId: uuid()
       .notNull()
       .references(() => listings.id, { onDelete: "cascade" }),
@@ -276,10 +277,10 @@ export const conversations = pgTable(
       .references(() => listings.id, { onDelete: "cascade" }),
     studentId: uuid()
       .notNull()
-      .references(() => profiles.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     landlordId: uuid()
       .notNull()
-      .references(() => profiles.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     lastMessageAt: timestamp({ withTimezone: true }),
     createdAt,
   },
@@ -299,7 +300,7 @@ export const messages = pgTable(
       .references(() => conversations.id, { onDelete: "cascade" }),
     senderId: uuid()
       .notNull()
-      .references(() => profiles.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     body: text().notNull(),
     readAt: timestamp({ withTimezone: true }),
     createdAt,
@@ -340,7 +341,7 @@ export const visitBookings = pgTable(
       .references(() => visitSlots.id, { onDelete: "cascade" }),
     studentId: uuid()
       .notNull()
-      .references(() => profiles.id, { onDelete: "cascade" }),
+      .references(() => users.id, { onDelete: "cascade" }),
     status: bookingStatus().notNull().default("requested"),
     message: text(),
     ...timestamps,

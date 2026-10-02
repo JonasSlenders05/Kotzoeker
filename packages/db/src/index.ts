@@ -2,7 +2,12 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
 
-// prepare: false is verplicht achter de Supabase transaction pooler
-const client = postgres(process.env.DATABASE_URL!, { prepare: false });
-export const db = drizzle(client, { schema, casing: "snake_case" });
+// const client = postgres(process.env.DATABASE_URL!, { prepare: false });
+
+export function createDatabase(url: string, options: { max?: number } = {}) {
+  const client = postgres(url, { prepare: false, max: options.max ?? 10 });
+  return drizzle(client, { schema, casing: "snake_case" });
+}
+
+export type Database = ReturnType<typeof createDatabase>;
 export * from "./schema";
