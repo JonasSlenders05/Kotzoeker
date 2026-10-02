@@ -56,18 +56,15 @@ max_client_conn = 100
 # secret_key = "env(SECRET_VALUE)"
 
 [db.migrations]
-# If disabled, migrations will be skipped during a db push or reset.
-enabled = true
+# Kotzoeker: de migraties staan in packages/db/migrations en draaien met drizzle-kit (pnpm db:migrate).
+enabled = false
 # Specifies an ordered list of schema files, directories, or glob patterns that describe your database.
 # Supports paths relative to supabase directory: "./schemas/*.sql", "./database".
 schema_paths = []
 
 [db.seed]
-# If enabled, seeds the database after migrations during a db reset.
+# Kotzoeker: de seed is apps/api/src/database/seed.ts (pnpm --filter @kotzoeker/api db:seed).
 enabled = false
-# Specifies an ordered list of seed files to load during db reset.
-# Supports glob patterns relative to supabase directory: "./seeds/*.sql"
-sql_paths = ["./seed.sql"]
 
 [db.network_restrictions]
 # Enable management of network restrictions.
@@ -84,6 +81,7 @@ allowed_cidrs_v6 = ["::/0"]
 # enabled = true
 
 [realtime]
+# Kotzoeker: niet gebruikt. Realtime chat komt later via een WebSocket-gateway in de API.
 enabled = false
 # Bind realtime via either IPv4 or IPv6. (default: IPv4)
 # ip_version = "IPv6"
@@ -102,6 +100,7 @@ openai_api_key = "env(OPENAI_API_KEY)"
 # Email testing server. Emails sent with the local dev setup are not actually sent - rather, they
 # are monitored, and you can view the emails that would have been sent from the web interface.
 [local_smtp]
+# Kotzoeker: enkel nodig voor Supabase Auth-mails, en die gebruiken we niet.
 enabled = false
 # Port to use for the email testing server web interface.
 port = 54324
@@ -116,13 +115,8 @@ enabled = true
 # The maximum file size allowed (e.g. "5MB", "500KB").
 file_size_limit = "50MiB"
 
-# Uncomment to configure local storage buckets
-# [storage.buckets.images]
-# public = false
-# file_size_limit = "50MiB"
-# allowed_mime_types = ["image/png", "image/jpeg"]
-# objects_path = "./images"
-
+# Kotzoeker: kotfoto's. Iedereen mag lezen (publieke URL); enkel de API schrijft, via het S3-protocol.
+# Wordt aangemaakt bij `supabase start` en `supabase seed buckets`.
 [storage.buckets.listing-photos]
 public = true
 file_size_limit = "5MiB"
@@ -157,6 +151,7 @@ max_indexes = 5
 # [storage.vector.buckets.documents-openai]
 
 [auth]
+# Kotzoeker: uit. De API doet zelf de authenticatie (JWT + argon2), zie apps/api/src/auth.
 enabled = false
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
@@ -237,14 +232,6 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-
-[auth.email.template.confirmation]
-subject = "Welkom bij Kotzoeker"
-content_path = "./supabase/templates/magic_link.html"
-
-[auth.email.template.magic_link]
-subject = "Inloggen bij Kotzoeker"
-content_path = "./supabase/templates/magic_link.html"
 
 # Use a production-ready SMTP server
 # [auth.email.smtp]
@@ -391,6 +378,7 @@ authorization_url_path = "/oauth/consent"
 allow_dynamic_registration = false
 
 [edge_runtime]
+# Kotzoeker: geen Edge Functions, alle logica zit in de API.
 enabled = false
 # Supported request policies: `oneshot`, `per_worker`.
 # `per_worker` (default) — enables hot reload during local development.

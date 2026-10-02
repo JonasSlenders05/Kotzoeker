@@ -66,14 +66,13 @@ export const bookingStatus = pgEnum("booking_status", [
 
 export type UserRole = (typeof userRole.enumValues)[number];
 
-//USERS
 export const users = pgTable(
   "users",
   {
     id: uuid().primaryKey().defaultRandom(),
-    role: userRole().notNull(),
-    email: text().notNull().unique(),
-    passwordHash: text().notNull(),
+    role: userRole().notNull(), // gekozen bij registratie; 'admin' enkel manueel
+    email: text().notNull().unique(), // altijd in kleine letters opgeslagen
+    passwordHash: text().notNull(), // argon2id, nooit het wachtwoord zelf
     firstName: text().notNull(),
     lastName: text().notNull(),
     avatarPath: text(), //pad in Storage-bucket "avatars"

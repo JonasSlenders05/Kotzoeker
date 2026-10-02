@@ -81,7 +81,7 @@ export type PublicListingSummaryDto = {
   title: string;
   city: string;
   rentCents: number;
-  coverThumbUrm: string | null;
+  coverThumbUrl: string | null;
   updatedAt: string;
 };
 
