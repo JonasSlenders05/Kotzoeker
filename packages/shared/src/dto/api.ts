@@ -1,4 +1,4 @@
-export type ListDto<T> = { item: T[] };
+export type ListDto<T> = { items: T[] };
 
 export type ApiErrorBody = {
   statusCode: number;
